@@ -36,13 +36,15 @@ class HTTPClient(object):
     #def get_host_port(self,url):
 
     def connect(self, host, port):
-        # use sockets!
-        return None
+        # From CMPUT 404 Lab 2
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((host, port))
+        return sock
 
     def get_code(self, data):
         return None
 
-    def get_headers(self,data):
+    def get_headers(self, data):
         return None
 
     def get_body(self, data):
@@ -61,8 +63,17 @@ class HTTPClient(object):
         return str(buffer)
 
     def GET(self, url, args=None):
-        code = 500
-        body = ""
+        (host, port, path) = split_url(url)
+        sock = self.connect(host, port)
+
+        request = "GET %s HTTP/1.1\r\n\Host: %s\r\n\r\n" % (path, host)
+
+        sock.sendall(request)
+
+        response = self.recvall(sock)
+
+        code = int(response.split(' ')[1])
+        body = response.split("\r\n\r\n")[1]
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
@@ -75,7 +86,18 @@ class HTTPClient(object):
             return self.POST( url, args )
         else:
             return self.GET( url, args )
-    
+
+
+def split_url(url):
+    """Returns a 3-tuple: (host, port, path)"""
+
+    # From https://docs.python.org/2/library/re.html
+    pattern = r'^http://(?P<host>[^/:\s]+)(?::(?P<port>\d+))?(?P<path>/.*)?$'
+    match = re.match(pattern, url)
+
+    if match is not None:
+        return match.group("host"), int(match.group("port") or 80), match.group("path") or "/"
+
 if __name__ == "__main__":
     client = HTTPClient()
     command = "GET"
