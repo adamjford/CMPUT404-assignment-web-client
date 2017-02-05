@@ -69,9 +69,11 @@ class HTTPClient(object):
         (host, port, path) = split_url(url)
         sock = self.connect(host, port)
 
-        request = "GET %s HTTP/1.1\r\n" \
-                  "Host: %s\r\n" \
-                  "\r\n" % (path, host)
+        # Request syntax/headers from CMPUT 404 course slides
+        request = unicode(
+            "GET %s HTTP/1.1\r\n"
+            "Host: %s\r\n"
+            "\r\n" % (path, host), 'utf-8')
 
         sock.sendall(request)
 
@@ -86,20 +88,18 @@ class HTTPClient(object):
         request_body = urllib.urlencode(args) if args else ""
 
         encoded_request_body = unicode(request_body, 'utf-8')
-
-        # From eumiro (http://stackoverflow.com/users/449449/eumiro)
-        # http://stackoverflow.com/a/4013246 (CC-BY-SA)
         request_body_size = len(encoded_request_body)
 
         sock = self.connect(host, port)
 
+        # Request syntax/headers from CMPUT 404 course slides
         request = unicode(
             "POST %s HTTP/1.1\r\n"
             "Host: %s\r\n"
             "Content-Type: application/x-www-form-urlencoded\r\n"
             "Content-Length: %d\r\n"
-            "\r\n"
-            "%s" % (path, host, request_body_size, request_body), 'utf-8')
+            "\r\n" % (path, host, request_body_size), 'utf-8') \
+            + encoded_request_body
 
         sock.sendall(request)
 
