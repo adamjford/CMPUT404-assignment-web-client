@@ -66,7 +66,7 @@ class HTTPClient(object):
         (host, port, path) = split_url(url)
         sock = self.connect(host, port)
 
-        request = "GET %s HTTP/1.1\r\n\Host: %s\r\n\r\n" % (path, host)
+        request = "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n" % (path, host)
 
         sock.sendall(request)
 
