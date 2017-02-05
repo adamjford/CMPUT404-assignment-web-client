@@ -24,16 +24,19 @@ import re
 # you may use urllib to encode data appropriately
 import urllib
 
+
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
+
 
 class HTTPResponse(object):
     def __init__(self, code=200, body=""):
         self.code = code
         self.body = body
 
+
 class HTTPClient(object):
-    #def get_host_port(self,url):
+    # def get_host_port(self,url):
 
     def connect(self, host, port):
         # From CMPUT 404 Lab 2
@@ -66,7 +69,9 @@ class HTTPClient(object):
         (host, port, path) = split_url(url)
         sock = self.connect(host, port)
 
-        request = "GET %s HTTP/1.1\r\nHost: %s\r\n\r\n" % (path, host)
+        request = "GET %s HTTP/1.1\r\n" \
+                  "Host: %s\r\n" \
+                  "\r\n" % (path, host)
 
         sock.sendall(request)
 
@@ -77,15 +82,38 @@ class HTTPClient(object):
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
-        code = 500
-        body = ""
+        (host, port, path) = split_url(url)
+        request_body = urllib.urlencode(args) if args else ""
+
+        encoded_request_body = unicode(request_body, 'utf-8')
+
+        # From eumiro (http://stackoverflow.com/users/449449/eumiro)
+        # http://stackoverflow.com/a/4013246 (CC-BY-SA)
+        request_body_size = len(encoded_request_body)
+
+        sock = self.connect(host, port)
+
+        request = unicode(
+            "POST %s HTTP/1.1\r\n"
+            "Host: %s\r\n"
+            "Content-Type: application/x-www-form-urlencoded\r\n"
+            "Content-Length: %d\r\n"
+            "\r\n"
+            "%s" % (path, host, request_body_size, request_body), 'utf-8')
+
+        sock.sendall(request)
+
+        response = self.recvall(sock)
+
+        code = int(response.split(' ')[1])
+        body = response.split("\r\n\r\n")[1]
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
         if (command == "POST"):
-            return self.POST( url, args )
+            return self.POST(url, args)
         else:
-            return self.GET( url, args )
+            return self.GET(url, args)
 
 
 def split_url(url):
@@ -98,6 +126,7 @@ def split_url(url):
     if match is not None:
         return match.group("host"), int(match.group("port") or 80), match.group("path") or "/"
 
+
 if __name__ == "__main__":
     client = HTTPClient()
     command = "GET"
@@ -105,6 +134,6 @@ if __name__ == "__main__":
         help()
         sys.exit(1)
     elif (len(sys.argv) == 3):
-        print client.command( sys.argv[2], sys.argv[1] )
+        print client.command(sys.argv[2], sys.argv[1])
     else:
-        print client.command( sys.argv[1] )   
+        print client.command(sys.argv[1])
