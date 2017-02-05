@@ -36,8 +36,6 @@ class HTTPResponse(object):
 
 
 class HTTPClient(object):
-    # def get_host_port(self,url):
-
     def connect(self, host, port):
         # From CMPUT 404 Lab 2
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -70,6 +68,7 @@ class HTTPClient(object):
         sock = self.connect(host, port)
 
         # Request syntax/headers from CMPUT 404 course slides
+        # Unicode conversion from https://docs.python.org/2/howto/unicode.html
         request = unicode(
             "GET %s HTTP/1.1\r\n"
             "Host: %s\r\n"
@@ -93,6 +92,7 @@ class HTTPClient(object):
         sock = self.connect(host, port)
 
         # Request syntax/headers from CMPUT 404 course slides
+        # Unicode conversion from https://docs.python.org/2/howto/unicode.html
         request = unicode(
             "POST %s HTTP/1.1\r\n"
             "Host: %s\r\n"
